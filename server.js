@@ -9,15 +9,22 @@ const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 app.use(cookieParser());
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://stoc1-dfront.vercel.app'
+];
 
-// Global middleware first
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://stockmarket-seven.vercel.app/'], // Your Next.js frontend URL
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+
 
 // Routes
 app.use('/api/auth', authRoutes); // includes /login, /register, /me, /logout
