@@ -13,7 +13,6 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://stoc1-dfront.vercel.app'
 ];
-const cors = require('cors');
 
 app.use(cors({
   origin: [
