@@ -9,6 +9,7 @@ const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 app.use(cookieParser());
+app.use(express.json()); // <--- MUST come BEFORE routes
 const allowedOrigins = [
   'http://localhost:3000',
   'https://stoc1-dfront.vercel.app'
