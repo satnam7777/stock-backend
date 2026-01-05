@@ -47,19 +47,18 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     // Save JWT in HttpOnly cookies (both legacy 'token' and 'auth-token' for frontend middleware)
-    res.cookie("token", token, {
+    const cookieOptions = {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction, // true in production, false in development
+      sameSite: isProduction ? "none" : "lax", // 'none' for cross-site (prod), 'lax' for local
       maxAge: 24 * 60 * 60 * 1000,
-    });
-    res.cookie("auth-token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+    };
+
+    res.cookie("token", token, cookieOptions);
+    res.cookie("auth-token", token, cookieOptions);
 
     // res.json({ message: "Login successful", token });
     res.json({ message: "Login successful" });
