@@ -8,6 +8,7 @@ const dashboardRoutes = require('./routes/dashboard');
 
 
 const app = express();
+app.use(express.json());
 app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:3000',
@@ -15,15 +16,18 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
+    console.log('Request Origin:', origin); // Log the origin for debugging
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.error('Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
 }));
+app.options('*', cors()); // Enable pre-flight requests for all routes
 
 
 // Routes
@@ -40,22 +44,24 @@ app.use('/api/dashboard', dashboardRoutes);
 
 
 // MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI || 'mongodb://localhost:27017/admin-dashboard')
-  .then(() => {
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/admin-dashboard');
     console.log('✅ MongoDB connected successfully');
-    
-    // Start server
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
-    });
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error('❌ MongoDB connection failed:', err);
-    process.exit(1);
-  });
+    // Do NOT exit process, allowing the server to still run and return 500s with CORS
+  }
+};
+
+// Start server (Connect to DB but don't wait for it to start listening)
+connectDB();
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

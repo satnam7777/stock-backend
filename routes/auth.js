@@ -50,18 +50,19 @@ router.post("/login", async (req, res) => {
     // Save JWT in HttpOnly cookies (both legacy 'token' and 'auth-token' for frontend middleware)
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000,
     });
     res.cookie("auth-token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    res.json({ message: "Login successful", token });
+    // res.json({ message: "Login successful", token });
+    res.json({ message: "Login successful" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
