@@ -29,6 +29,25 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  fullName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  phone: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  bio: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  photo: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true
@@ -38,7 +57,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ email: 1 });
 
 // Virtual for user profile (exclude password)
-userSchema.virtual('profile').get(function() {
+userSchema.virtual('profile').get(function () {
   return {
     id: this._id,
     username: this.username,
@@ -52,7 +71,7 @@ userSchema.virtual('profile').get(function() {
 // Ensure virtual fields are serialized
 userSchema.set('toJSON', {
   virtuals: true,
-  transform: function(doc, ret) {
+  transform: function (doc, ret) {
     delete ret.password;
     return ret;
   }

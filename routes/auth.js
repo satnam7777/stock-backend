@@ -78,12 +78,68 @@ router.post("/logout", (req, res) => {
 // ME (protected)
 router.get("/me", auth, async (req, res) => {
   try {
+    // Re-fetch user to get latest data
+    const user = await User.findById(req.userProfile._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     res.json({
-      _id: req.userProfile._id,
-      username: req.userProfile.username,
-      email: req.userProfile.email,
-      role: req.userProfile.role,
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName,
+      phone: user.phone,
+      bio: user.bio,
+      photo: user.photo,
+      role: user.role,
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// UPDATE PROFILE
+router.put("/update", auth, async (req, res) => {
+  try {
+    const { username, email, fullName, phone, bio, photo } = req.body;
+
+    // Build update object
+    const updateFields = {};
+    if (username) updateFields.username = username;
+    if (email) updateFields.email = email;
+    if (fullName) updateFields.fullName = fullName;
+    if (phone) updateFields.phone = phone;
+    if (bio) updateFields.bio = bio;
+    if (photo) updateFields.photo = photo;
+
+    // Check if email/username is taken if changed (optional validation)
+    if (email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: req.userProfile._id } });
+      if (existingUser) return res.status(400).json({ message: "Email already in use" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.userProfile._id,
+      { $set: updateFields },
+      { new: true, runValidators: true } // Return updated doc
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user.phone,
+        bio: user.bio,
+        photo: user.photo,
+        role: user.role
+      }
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

@@ -8,7 +8,7 @@ const dashboardRoutes = require('./routes/dashboard');
 
 
 const app = express();
-app.use(express.json()); // <--- MUST come BEFORE routes
+app.use(express.json({ limit: '10mb' })); // <--- MUST come BEFORE routes
 app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:3000',
