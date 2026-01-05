@@ -8,7 +8,11 @@ const dashboardRoutes = require('./routes/dashboard');
 
 
 const app = express();
+<<<<<<< HEAD
 app.use(express.json());
+=======
+app.use(express.json()); // <--- MUST come BEFORE routes
+>>>>>>> 8d4db3f12615b2d22009632f39e06b2d77e5c35a
 app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:3000',
@@ -16,6 +20,7 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
+<<<<<<< HEAD
   origin: function (origin, callback) {
     console.log('Request Origin:', origin); // Log the origin for debugging
     if (!origin || allowedOrigins.includes(origin)) {
@@ -25,9 +30,18 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
+=======
+  origin: [
+    'http://localhost:3000', // for local dev
+    'https://stoc1-dfront-8d6l2e73e-satnams-projects-b6f4cbc8.vercel.app' // your deployed frontend
+  ],
+>>>>>>> 8d4db3f12615b2d22009632f39e06b2d77e5c35a
   credentials: true,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.options('*', cors()); // Enable pre-flight requests for all routes
+
 
 
 // Routes
