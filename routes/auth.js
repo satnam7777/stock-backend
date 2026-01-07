@@ -30,43 +30,78 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// LOGIN
+// // LOGIN
+// router.post("/login", async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await User.findOne({ email });
+//     if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+//     const token = jwt.sign(
+//       { id: user._id, username: user.username, email: user.email, role: user.role },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "1d" }
+//     );
+
+//     const isProduction = process.env.NODE_ENV === "production";
+
+//     // Save JWT in HttpOnly cookies (both legacy 'token' and 'auth-token' for frontend middleware)
+//     const cookieOptions = {
+//       httpOnly: true,
+//       secure: isProduction, // true in production, false in development
+//       sameSite: isProduction ? "none" : "lax", // 'none' for cross-site (prod), 'lax' for local
+//       maxAge: 24 * 60 * 60 * 1000,
+//     };
+
+//     res.cookie("token", token, cookieOptions);
+//     res.cookie("auth-token", token, cookieOptions);
+
+//     res.json({ message: "Login successful", token });
+//     // res.json({ message: "Login successful" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
+
+
+
+
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    // 1️⃣ Fast DB query with index
+    const user = await User.findOne({ email }).select("+password"); // ensure password is included
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
+    // 2️⃣ Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
+    // 3️⃣ Sign JWT with minimal payload
     const token = jwt.sign(
-      { id: user._id, username: user.username, email: user.email, role: user.role },
+      { id: user._id, role: user.role }, // minimal payload
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    const isProduction = process.env.NODE_ENV === "production";
+    // 4️⃣ Send token
+    res.json({ token, user: { id: user._id, username: user.username, email: user.email, role: user.role } });
 
-    // Save JWT in HttpOnly cookies (both legacy 'token' and 'auth-token' for frontend middleware)
-    const cookieOptions = {
-      httpOnly: true,
-      secure: isProduction, // true in production, false in development
-      sameSite: isProduction ? "none" : "lax", // 'none' for cross-site (prod), 'lax' for local
-      maxAge: 24 * 60 * 60 * 1000,
-    };
-
-    res.cookie("token", token, cookieOptions);
-    res.cookie("auth-token", token, cookieOptions);
-
-    res.json({ message: "Login successful", token });
-    // res.json({ message: "Login successful" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+
+
+
 
 // LOGOUT
 router.post("/logout", (req, res) => {
